@@ -33,9 +33,42 @@
 \begin{document}
 \maketitle
 
-The literature of adaptive mesh refinement (AMR) for finite element (FE) methods is quite big, now in 2025, and I have missed too many citations in this space, even for the restricted literature of AMR for variational inequalities and obstacle problems.  In working on \cite{FochesattoBueler2025}, and the associated Python/Firedrake library  \href{https://github.com/StefanoFochesatto/viamr}{\texttt{viamr}}, we evidently need a place to keep track of, and provide context for, these references.
+\section{Introduction}
 
-This is an annotated bibliography, and likely to be opinionated.
+This is an annotated bibliography, and opinionated.
+
+The literature of adaptive mesh refinement (AMR) for finite element (FE; \cite{ElmanSilvesterWathen2014}) methods is quite big in 2025.  I have missed too many citations in this space, even for the restricted literature of AMR for variational inequalities (VIs; \cite{KinderlehrerStampacchia1980}) and obstacle problems.  In working on \cite{FochesattoBueler2025}, and the associated Python/Firedrake library  \href{https://github.com/StefanoFochesatto/viamr}{\texttt{viamr}}, we evidently need a place to keep track of, and provide context for, these references.
+
+To set notation, used below in commentary, note that the \emph{classical obstacle problem} is either the entire purpose of articles cited below, or is at least a primary example.  In strong (\emph{complementarity}) form,
+\begin{subequations} \label{eq:ncp}
+\begin{align}
+  -\nabla^2 u - f &\geq 0 \\
+  u - \psi &\geq 0 \\
+  (-\nabla^2u - f)(u - \psi) &= 0
+\end{align}
+\end{subequations}
+This problem is over a domain $\Omega \subset \RR^2$, which we will assume (for here) is polygonal.
+
+When turned into a weak form it is an inequality over an \emph{admissible set}
+\begin{equation}
+\cK = \{u \in \cX \,:\, u \ge \psi \text{ and } u|_{\partial \Omega} = g\}
+\end{equation}
+which is a closed and convex set of the Hilbert space $\cX = H^1(\Omega)$, namely
+\begin{equation}
+\int_\Omega \nabla u \cdot \nabla(v - u) \ge \int_\Omega f(v - u) \quad \text{ for all } v \in \cK. \label{eq:vi}
+\end{equation}
+
+The operator $F \in \cX'$ in \eqref{eq:vi}, namely
+\begin{equation}
+F(v)[w] = \int_\Omega \nabla v \cdot \nabla w - \int_\Omega f w,
+\end{equation}
+is the \emph{residual} or the \emph{lagrange multiplier}, depending on the author.  The last usage makes sense if we write complementarity problem \eqref{eq:ncp} as
+\begin{subequations} \label{eq:ncplagrange}
+\begin{align}
+  -\nabla^2 u &= f + \lambda \\
+  \lambda \geq 0, \quad u - \psi \geq 0, \quad \lambda (u - \psi) &= 0
+\end{align}
+\end{subequations}
 
 \newcommand{\nm}[1]{\item \,{\large \textbf{#1}} \, \cite{#1} \,}
 
@@ -52,6 +85,7 @@ This is an annotated bibliography, and likely to be opinionated.
 
 \begin{itemize}
 \nm{AinsworthOdenLee1993}
+\nm{BraessCarstensenHoppe2007}  This is a central paper for AMR on obstacle problems with affine obstacles.  The estimator ignores the active/inactive sets and just uses edge residuals.  I think this method breaks on rough data ($f$ or $\psi$).
 \end{itemize}
 
 \section{AMR for finite elements generally}
