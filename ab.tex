@@ -6,6 +6,7 @@
 \usepackage{enumerate,palatino,bm}
 
 \usepackage[final]{graphicx}
+\usepackage[dvipsnames]{xcolor}
 
 \usepackage[colorlinks=true,citecolor=blue,linkcolor=red,urlcolor=blue]{hyperref}
 
@@ -35,11 +36,11 @@
 
 \section{Introduction}
 
-This is an annotated bibliography, and opinionated.
+This is an annotated bibliography, and opinionated.  It covers adaptive mesh refinement and \emph{a posteriori} estimators, especially for obstacle problems and variational inequalities.
 
-The literature of adaptive mesh refinement (AMR) for finite element (FE; \cite{ElmanSilvesterWathen2014}) methods is quite big in 2025.  I have missed too many citations in this space, even for the restricted literature of AMR for variational inequalities (VIs; \cite{KinderlehrerStampacchia1980}) and obstacle problems.  In working on \cite{FochesattoBueler2025}, and the associated Python/Firedrake library  \href{https://github.com/StefanoFochesatto/viamr}{\texttt{viamr}}, we evidently need a place to keep track of, and provide context for, these references.
+The literature of adaptive mesh refinement (AMR) for finite element (FE; \cite{ElmanSilvesterWathen2014}) methods is quite big in 2025.  I have missed too many citations in this space, even for the restricted literature of AMR for variational inequalities \cite{KinderlehrerStampacchia1980} and obstacle problems.  In working on \cite{FochesattoBueler2025}, and the associated Python/Firedrake library  \href{https://github.com/StefanoFochesatto/viamr}{\texttt{viamr}}, we evidently need a place to keep track of, and provide context for, these references.
 
-To set notation, used below in commentary, note that the \emph{classical obstacle problem} is either the entire purpose of articles cited below, or is at least a primary example.  In strong (\emph{complementarity}) form,
+To set notation, used below in commentary/annotations, the \emph{classical obstacle problem}, in strong (\emph{complementarity}) form, is
 \begin{subequations} \label{eq:ncp}
 \begin{align}
   -\nabla^2 u - f &\geq 0 \\
@@ -47,13 +48,13 @@ To set notation, used below in commentary, note that the \emph{classical obstacl
   (-\nabla^2u - f)(u - \psi) &= 0
 \end{align}
 \end{subequations}
-This problem is over a domain $\Omega \subset \RR^2$, which we will assume (for here) is polygonal.
+This problem is over a domain $\Omega \subset \RR^2$, which we will assume (for here) is polygonal.  This problem is either the entire purpose of articles cited below, or is at least a primary example.
 
-When turned into a weak form it is an inequality over an \emph{admissible set}
+When turned into a weak form it is a \emph{variational inequality} (VI) over an \emph{admissible set}
 \begin{equation}
-\cK = \{u \in \cX \,:\, u \ge \psi \text{ and } u|_{\partial \Omega} = g\}
+\cK = \{u \in \cX \,:\, u \ge \psi \text{ on $\Omega$, and } u|_{\partial \Omega} = g\},
 \end{equation}
-which is a closed and convex set of the Hilbert space $\cX = H^1(\Omega)$, namely
+where $\psi \in \cX$ is the \emph{obstacle}.  Note that $\cK$ is a closed and convex set of the Hilbert space $\cX = H^1(\Omega)$, and it is nonempty if $\psi_{\partial\Omega} \le g$.  One can systematically incorporate the fixed boundary condition $u=g$ into the definition of $\cK$, as done here.  The classical obstacle problem is then to find $u\in\cK$ so that
 \begin{equation}
 \int_\Omega \nabla u \cdot \nabla(v - u) \ge \int_\Omega f(v - u) \quad \text{ for all } v \in \cK. \label{eq:vi}
 \end{equation}
@@ -62,38 +63,55 @@ The operator $F \in \cX'$ in \eqref{eq:vi}, namely
 \begin{equation}
 F(v)[w] = \int_\Omega \nabla v \cdot \nabla w - \int_\Omega f w,
 \end{equation}
-is the \emph{residual} or the \emph{lagrange multiplier}, depending on the author.  The last usage makes sense if we write complementarity problem \eqref{eq:ncp} as
-\begin{subequations} \label{eq:ncplagrange}
-\begin{align}
-  -\nabla^2 u &= f + \lambda \\
-  \lambda \geq 0, \quad u - \psi \geq 0, \quad \lambda (u - \psi) &= 0
-\end{align}
-\end{subequations}
+is the \emph{residual} or the \emph{Lagrange multiplier}, depending on the author.  Problem \eqref{eq:vi} says that $F(u)[v-u]\ge 0$ for all $v\in\cK$, so that $F(u)$ is (heuristically) as close to zero as it can be within the constrained set $\cK$, and nonnegative.
+
+Note that ``Lagrange multiplier'' usage makes sense if we write complementarity problem \eqref{eq:ncp} as
+\begin{equation} \label{eq:ncplagrange}
+  -\nabla^2 u = f + \lambda, \quad \lambda \geq 0, \quad u - \psi \geq 0, \quad \lambda (u - \psi) = 0.
+\end{equation}
+These are the KKT conditions of the optimization problem
+\begin{equation}
+u \longleftarrow \min_{v\in\cK} J(v) = \int_\Omega \frac{1}{2} |\grad v|^2 - fv.\label{eq:min}
+\end{equation}
+However, in general VIs may not correspond to an optimization problem, and the glacier example in \cite{FochesattoBueler2025} is an example.
+
+Essentially all of the literature in the next three sections addresses AMR for \emph{shape-regular triangulations} \cite{BangerthRannacher2003} of the polygonal domain $\Omega$.  Most of the literature is only for $P_1$ elements.
+
+The {\color{BrickRed} red items} in the next three sections are the important ones.
 
 \newcommand{\nm}[1]{\item \,{\large \textbf{#1}} \, \cite{#1} \,}
+\newcommand{\rnm}[1]{\item \,{\large {\color{BrickRed} \textbf{#1}}} \, \cite{#1} \,}
+\newcommand{\res}[1]{\,\emph{#1.}\,}
 
-\section{AMR books}
-
-\begin{itemize}
-\nm{AinsworthOden2000} foo
-\nm{BangerthRannacher2003}
-\nm{Demkowicz2007}
-\nm{Suttmeier2008}
-\end{itemize}
 
 \section{AMR for variational inequalities and obstacle problems}
 
 \begin{itemize}
-\nm{AinsworthOdenLee1993}
-\nm{BraessCarstensenHoppe2007}  This is a central paper for AMR on obstacle problems with affine obstacles.  The estimator ignores the active/inactive sets and just uses edge residuals.  I think this method breaks on rough data ($f$ or $\psi$).
+\nm{AinsworthOdenLee1993} FIXME
+\rnm{BraessCarstensenHoppe2007}  \res{classical, affine}  This is a central paper for AMR on obstacle problems with affine obstacles.  The estimator ignores the active/inactive sets and just uses edge residuals.  I think this method breaks on rough data ($f$ or $\psi$).  Refinement requires interior nodes in each triangle, which is a kind of over-refinement, and an (un-algorithmed) reduction of oscillation of $f$.  The main point is that discrete local efficiency leads to an energy reduction theorem.
+\nm{BraessCarstensenHoppe2009} FIXME
+\nm{CarstensenMerdon2013} FIXME
+\nm{ChenNochetto2000} FIXME
+\nm{NochettoSiebertVeeser2003} FIXME
+\rnm{Veeser2001} FIXME
+\nm{WeissWohlmuth2010} FIXME
 \end{itemize}
 
 \section{AMR for finite elements generally}
 
 \begin{itemize}
-\nm{BabuskaRheinboldt1979}
-\nm{BeckerRannacher2001}
-\nm{PlazaCarey2000}
+\nm{BabuskaRheinboldt1979} FIXME
+\nm{BeckerRannacher2001} FIXME
+\nm{PlazaCarey2000} FIXME
+\end{itemize}
+
+\section{AMR books}
+
+\begin{itemize}
+\nm{AinsworthOden2000} FIXME
+\nm{BangerthRannacher2003} FIXME
+\nm{Demkowicz2007} FIXME
+\rnm{Suttmeier2008} FIXME
 \end{itemize}
 
 {\small
