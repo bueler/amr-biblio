@@ -36,74 +36,94 @@
 
 \section{Introduction}
 
-This is an annotated bibliography, and opinionated.  It covers adaptive mesh refinement and \emph{a posteriori} estimators, especially for obstacle problems and variational inequalities (VIs; \cite{KinderlehrerStampacchia1980}).
+This is an annotated bibliography, and an opinionated one.  It covers adaptive mesh refinement and \emph{a posteriori} estimators, especially for obstacle problems and variational inequalities (VIs; \cite{KinderlehrerStampacchia1980}).
 
-The literature of adaptive mesh refinement (AMR) for finite element (FE; \cite{ElmanSilvesterWathen2014}) methods is quite large now in 2025.  I have missed too many citations in this space, even for the restricted literature of AMR for variational inequalities and obstacle problems.  In working on \cite{FochesattoBueler2025}, and the associated Python/Firedrake library  \href{https://github.com/StefanoFochesatto/viamr}{\texttt{viamr}}, we evidently need a place to keep track of, and provide context for, these references.
+The literature of adaptive mesh refinement (AMR) for finite element (FE; \cite{ElmanSilvesterWathen2014}) methods is quite large now in 2025.  The literature is substantial even for the subset of literature related to variational inequalities and obstacle problems, which is the scope of this bibliography.
 
-To establish notation, used below in commentary/annotations, the \emph{classical obstacle problem}, in strong (\emph{complementarity}) form, is
+I have missed too many citations in this space.  In working on \cite{FochesattoBueler2025}, and the associated Python/Firedrake library  \href{https://github.com/StefanoFochesatto/viamr}{\texttt{viamr}}, we evidently need a place to keep track of, and provide context for, these references.  The Appendix also lists some journals to consider.
+
+\section{Technical introduction}
+
+\subsubsection*{Continuum problem}  Let us establish notation for use below in commentary and annotations.  The \emph{classical obstacle problem}, in strong (\emph{complementarity}) form, is
 \begin{subequations} \label{eq:ncp:classical}
 \begin{align}
   -\nabla^2 u - f &\geq 0 \\
   u - \psi &\geq 0 \\
-  (-\nabla^2u - f)(u - \psi) &= 0
+  (-\nabla^2u - f)(u - \psi) &= 0,
 \end{align}
 \end{subequations}
-This problem is over a domain $\Omega \subset \RR^2$, which we will assume (for here) is polygonal.  This problem is either the entire purpose of articles cited below, or is at least a primary example.
+where $\psi$ is the \emph{obstacle}.  This problem is over a domain $\Omega \subset \RR^d$, usually but not always with $d=2$.   Most literature assumes $\Omega$ is polygonal, and some that it is convex.
 
-When turned into a weak form it is a \emph{variational inequality} (VI) over an \emph{admissible set}
-\begin{equation}
-\cK = \{u \in \cX \,:\, u \ge \psi \text{ on $\Omega$, and } u|_{\partial \Omega} = g\},
+To convert problem \eqref{eq:ncp:classical} to weak form we define an \emph{admissible (constraint) set}
+\begin{equation} \label{eq:admissible}
+\cK = \{v \in \cX \,:\, v \ge \psi \text{, on $\Omega$, and } v|_{\partial \Omega} = g\}.
 \end{equation}
-where $\psi \in \cX$ is the \emph{obstacle}.  Note that $\cK$ is a closed and convex set of the Hilbert space $\cX = H^1(\Omega)$, and it is nonempty if $\psi_{\partial\Omega} \le g$.  One can systematically incorporate the fixed boundary condition $u=g$ into the definition of $\cK$, as done here.  The classical obstacle problem is then to find $u\in\cK$ so that
+It is a subset of the Hilbert space $\cX = H^1(\Omega)$ in the classical problem.  One can incorporate a fixed Dirichlet boundary condition $v=g$ into the definition of $\cK$, as done here, but $g\ge \psi|_{\partial\Omega}$ is required for compatibility so that $\cK$ is nonempty.  Often $\psi$ is also in $\cX$, but even if it is more general, for example if $\psi\in L^2(\Omega)$ and the inequality in \eqref{eq:admissible} is only a.e., we have that $\cK$ is a closed and convex subset of $\cX$.
+
+An argument using test functions \cite{KinderlehrerStampacchia1980} converts the strong form \eqref{eq:ncp:classical} of the classical obstacle problem into this \emph{variational inequality} (VI), to find $u\in\cK$ so that
 \begin{equation}
 \int_\Omega \nabla u \cdot \nabla(v - u) \ge \int_\Omega f(v - u) \quad \text{ for all } v \in \cK. \label{eq:vi:classical}
 \end{equation}
+Problem \eqref{eq:vi:classical} is either the entire purpose of articles cited below, or the primary example.
 
-The operator $F \in \cX'$ in \eqref{eq:vi:classical}, namely
+The operator in \eqref{eq:vi:classical} is a map into the dual space, namely
 \begin{equation}
-F(v)[w] = \int_\Omega \nabla v \cdot \nabla w - \int_\Omega f w,
+F(v)[w] = \int_\Omega \nabla v \cdot \nabla w - \int_\Omega f w, \label{eq:functional}
 \end{equation}
-For any $F \in \cX'$ we have the general VI form:
+defining $F:\cK \to \cX'$, that is, with $F(v)\in \cX'$ a linear functional.  Nonlinear operators are possible in obstacle problems, for example in the glacier geometry problem solved by \cite{FochesattoBueler2025}, so that $F$ is \eqref{eq:functional} nonlinear in $v$, but it is always linear in the test function $w$.  For any such $F$ we have the VI, generalizing \eqref{eq:vi:classical}, to find $u\in\cK$ so that
 \begin{equation}
 F(u)[v-u] \ge 0 \quad \text{ for all } v \in \cK. \label{eq:vi}
 \end{equation}
-Here $F(u)$ is the \emph{residual} or the \emph{Lagrange multiplier}, depending on the author.  Problem \eqref{eq:vi} says that $F(u)[v-u]\ge 0$ for all $v\in\cK$, so that $F(u)$ is (heuristically) as close to zero as it can be within the constrained set $\cK$, and nonnegative.  The residual $F(u)$ may be denoted $\sigma$ in the literature \cite[for example]{NochettoSiebertVeeser2003}.
 
-The ``Lagrange multiplier'' usage makes sense if we write the complementarity problem \eqref{eq:ncp:classical} for the classical obstacle problem as
+Much of the literature \cite[for example]{NochettoSiebertVeeser2003} denotes
+\begin{equation}
+\sigma = F(u) \in \cX'. \label{eq:sigma}
+\end{equation}
+Note that $\sigma$ is called the \emph{residual} or the \emph{Lagrange multiplier}, depending on the author.  Loosely-speaking, problem \eqref{eq:vi} says that $\sigma$ is as close to zero as it can be within the constrained set $\cK$, with this being literal for the classical obstacle problem (below), and with $\sigma=0$ if $u$ is in the interior of $\cK$.  The ``Lagrange multiplier'' usage makes sense for the classical obstacle problem if we write the complementarity problem \eqref{eq:ncp:classical} as
 \begin{equation} \label{eq:ncplagrange}
   -\nabla^2 u = f + \lambda, \quad \lambda \geq 0, \quad u - \psi \geq 0, \quad \lambda (u - \psi) = 0.
 \end{equation}
-These are the KKT conditions of the optimization problem
+These are the KKT conditions \cite{NocedalWright2006} of the optimization problem
 \begin{equation}
 u \longleftarrow \min_{v\in\cK} J(v) = \int_\Omega \frac{1}{2} |\grad v|^2 - fv.\label{eq:min}
 \end{equation}
-However, general VIs may not correspond to an optimization problem; the glacier problem in \cite{FochesattoBueler2025} is an example.
+However, general VIs may not correspond to an optimization problem; the glacier problem in \cite{FochesattoBueler2025} is also an example of this.
 
 From a solution of \eqref{eq:vi} we may identify the \emph{active} (\emph{contact}, \emph{coincidence}) and \emph{inactive} (\emph{non-contact, non-coincidence}) sets:
 \begin{equation}
-  I_u = \{x \in \Omega \,:\, u(x) > \psi(x)\}, \quad A_u = \Omega \setminus I_u. \label{eq:sets}
+  A_u = \{x\in\Omega \,:\, u(x)=\psi(x)\}, \quad I_u = \{x \in \Omega \,:\, u(x) > \psi(x)\}, \label{eq:sets}
 \end{equation}
-These sets define the free boundary:
+so that $I_u \cup A_u = \Omega$ is a partition.  If $u$ and $\psi$ are continuous then $I_u$ is open.  These sets define the free boundary:
 \begin{equation}
   \Gamma_u = \Omega \cap \partial I_u. \label{eq:freebdry}
 \end{equation}
-Sometimes the literature emphasizes that $F$ is a positive Radon measure supported in the active set $A_u$ \cite{KinderlehrerStampacchia1980}.
+Sometimes the literature emphasizes that $\sigma=F(u)$ is a positive Radon measure supported in the active set $A_u$ \cite{KinderlehrerStampacchia1980}.
 
-The FE solution solves the same VI as \eqref{eq:vi} over a finite-dimensional space $\cX_h\subset\cX$:
+\subsubsection*{Finite element approximation}  The FE solution solves the same VI as \eqref{eq:vi} over a finite-dimensional space $\cX_h\subset\cX$:
 \begin{equation}
 F_h(u_h)[v_h-u_h] \ge 0 \quad \text{ for all } v_h \in \cK_h. \label{eq:fe:vi}
 \end{equation}
 
-In considering the FE VI \eqref{eq:fe:vi}, the precise definition of the FE admissible set $\cK_h$ is one thing to pay attention to.  Certain references give analysis which is only useful in the (geometrically) \emph{conforming} case $\cK_h\subset \cK$, but generally $\cK_h$ is not contained in $\cK$ \cite{FochesattoBueler2025}.  Most of the literature is only for $P_1$ elements, and some of the literature is special to affine obstacles, that is, for which $\grad^2 \psi=0$, a conforming case.
+In considering the FE VI \eqref{eq:fe:vi}, the precise definition of the FE admissible set $\cK_h$ is important.  Certain references give analysis which is only useful in the (geometrically) \emph{conforming} case $\cK_h\subset \cK$, but generally $\cK_h$ is not contained in $\cK$ \cite{FochesattoBueler2025}.  Most of the literature is only for $P_1$ elements, and some of the literature is special to affine obstacles, that is, for which $\grad^2 \psi=0$, a conforming case.
 
-Likewise, in some cases $F_h=F|_{\cX_h}$, but generally $F_h$ is only an approximation to $F$, e.g.~because of quadrature.  The discrete residual $F(u_h)$ is also a measure, one which is typically singular with respect to Lebesgue measure along the element edges.
+Likewise, in some cases $F_h=F|_{\cX_h}$, but generally $F_h$ is only an approximation to $F$, e.g.~because of quadrature.
+
+The discrete residual is in the dual space of the finite-dimensional FE space:
+\begin{equation}
+\sigma_h = F_h(u_h) \in \cX_h'\label{eq:fe:sigma}
+\end{equation}
+
+FIXME key idea is that $\sigma_h$ is nonzero if there is an FE active set, i.e.~$\sigma_h(w_h)\ne 0$ for some $w_h$ supported in (near?) the computed FE active set
+
+FIXME key idea is that $\sigma_h$ has many extensions to $\cX$
+% is also a measure, one which is typically singular with respect to Lebesgue measure along the element edges.
 
 Essentially all of the literature addresses AMR for \emph{shape-regular triangulations} \cite{BangerthRannacher2003} of a polygonal domain $\Omega$.
 
 
 \section{AMR for variational inequalities and obstacle problems}
 
-The {\color{BrickRed} red items} in the next three sections are, possibly, the most important ones.
+The {\color{BrickRed} red items} are, possibly, the most important ones.
 
 \newcommand{\nm}[1]{\item \,{\large \textbf{#1}} \, \cite{#1} \,}
 \newcommand{\rnm}[1]{\item \,{\large {\color{BrickRed} \textbf{#1}}} \, \cite{#1} \,}
@@ -117,6 +137,7 @@ The {\color{BrickRed} red items} in the next three sections are, possibly, the m
 \nm{CarstensenMerdon2013} FIXME
 \nm{ChenNochetto2000} FIXME
 \rnm{NochettoSiebertVeeser2003}  \res{classical, general obstacle}  FIXME
+\rnm{Suttmeier2008} \res{book} FIXME
 \nm{Veeser2001} FIXME
 \nm{WeissWohlmuth2010} FIXME
 \end{itemize}
@@ -124,29 +145,35 @@ The {\color{BrickRed} red items} in the next three sections are, possibly, the m
 \section{AMR for finite elements generally}
 
 \begin{itemize}
+\nm{AinsworthOden2000} \res{book} FIXME
 \nm{BabuskaRheinboldt1979} FIXME
+\nm{BangerthRannacher2003} \res{book} FIXME
 \nm{BeckerRannacher2001} FIXME
+\nm{Demkowicz2007} \res{book} FIXME
 \nm{Dorfler1996} FIXME
 \nm{PlazaCarey2000} FIXME
 \end{itemize}
 
-\section{AMR books}
 
-\begin{itemize}
-\nm{AinsworthOden2000} FIXME
-\nm{BangerthRannacher2003} FIXME
-\nm{Demkowicz2007} FIXME
-\rnm{Suttmeier2008} FIXME
-\end{itemize}
+{\small
+\bibliographystyle{siamplain}
+\bibliography{ab}
+}
 
-\section{Journals for AMR papers}
+
+\appendix
+\section{Journals for VI AMR papers}
 
 \subsection*{Implementation-focussed journals}
 
 \begin{itemize}
-\item \href{https://www.degruyterbrill.com/journal/key/cmam/html?srsltid=AfmBOoo8WGJxRllInTVAWwmPnu4jpE_REhB_ohFjk93UKvPwxGXhQeir}{Computational Methods in Applied Mathematics}  Carstensen is Editor-in-Chief
+\item \href{https://www.sciencedirect.com/journal/applied-numerical-mathematics}{Applied Numerical Mathematics}
+\item \href{https://www.degruyterbrill.com/journal/key/cmam/html?srsltid=AfmBOoo8WGJxRllInTVAWwmPnu4jpE_REhB_ohFjk93UKvPwxGXhQeir}{Computational Methods in Applied Mathematics}
+
+Carstensen is Editor-in-Chief
 \item \href{https://link.springer.com/journal/44207}{Computational Science and Engineering}
 \item \href{https://www.sciencedirect.com/journal/computer-methods-in-applied-mechanics-and-engineering}{Computer Methods in Applied Mechanics and Engineering}
+\item \href{https://academic.oup.com/imajna}{IMA Journal of Numerical Analysis}
 \item \href{https://www.math.ualberta.ca/ijnam/}{International Journal of                                                 Numerical Analysis \& Modeling}
 \item \href{https://onlinelibrary.wiley.com/journal/10970207}{International Journal for Numerical Methods in Engineering}
 \item \href{https://onlinelibrary.wiley.com/journal/10982426}{Numerical Methods for Partial Differential Equations}
@@ -164,8 +191,4 @@ Already tried.  Editor pointed out references \cite{BraessCarstensenHoppe2007}, 
 %\item \href{}{}
 \end{itemize}
 
-{\small
-\bibliographystyle{siamplain}
-\bibliography{ab}
-}
 \end{document}
