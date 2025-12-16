@@ -87,7 +87,7 @@ The {\color{BrickRed} red items} in the next three sections are the important on
 \section{AMR for variational inequalities and obstacle problems}
 
 \begin{itemize}
-\nm{AinsworthOdenLee1993} FIXME
+\nm{AinsworthOdenLee1993} Variational inequalities are are discussed in section 6.3. In this analysis they use $K_x \subset K \cap X$ (6.90) and heavily rely on the optimization formulation to bound the global error (6.95). The analysis reduces to solving a VI on each element (6.3.3) the final two paragraphs conclude that the complementarity condition complicate the local problems and they cite 
 \rnm{BraessCarstensenHoppe2007}  \res{classical, affine}  This is a central paper for AMR on obstacle problems with affine obstacles.  The estimator ignores the active/inactive sets and just uses edge residuals.  I think this method breaks on rough data ($f$ or $\psi$).  Refinement requires interior nodes in each triangle, which is a kind of over-refinement, and an (un-algorithmed) reduction of oscillation of $f$.  The main point is that discrete local efficiency leads to an energy reduction theorem.
 \nm{BraessCarstensenHoppe2009} FIXME
 \nm{CarstensenMerdon2013} FIXME
